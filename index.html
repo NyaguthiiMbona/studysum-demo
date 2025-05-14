@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>StudySum – AI Lecture Summarizer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      margin: 0;
+      padding: 40px 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+
+    label {
+      display: block;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+      margin-bottom: 15px;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    #summary {
+      margin-top: 20px;
+      background: #ecf0f1;
+      padding: 10px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      min-height: 120px;
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 40px;
+      font-size: 0.9em;
+      text-align: center;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>StudySum</h1>
+    <p>Select your subject and paste your Zoom/Meet transcript below.</p>
+
+    <!-- Subject Selection -->
+    <label for="subjectSelect">Choose Your Subject:</label>
+    <select id="subjectSelect">
+      <option value="General">General</option>
+      <option value="Biology">Biology</option>
+      <option value="Chemistry">Chemistry</option>
+      <option value="Physics">Physics</option>
+      <option value="Math">Math</option>
+      <option value="History">History</option>
+    </select>
+
+    <!-- Transcript Input -->
+    <label for="transcriptInput">Paste Your Lecture Transcript:</label>
+    <textarea id="transcriptInput" placeholder="Paste your Zoom or Meet transcript here..."></textarea>
+
+    <!-- Generate Button -->
+    <button id="summarizeBtn">Generate Summary</button>
+    <button id="exportBtn">Export Summary (.md)</button>
+
+    <!-- Summary Output -->
+    <div id="summary"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Demo version limited to 3 summaries per session<br/>
+      Full version available in Chrome Web Store
+    </div>
+  </div>
+
+  <script>
+    const MAX_SUMMARIES = 3;
+
+    let summaryCount = 0;
+
+    // Simulate AI-generated summary
+    document.getElementById("summarizeBtn").addEventListener("click", () => {
+      if (summaryCount >= MAX_SUMMARIES) {
+        alert(`Demo limit reached. You can generate up to ${MAX_SUMMARIES} summaries per session.`);
+        return;
+      }
+
+      const subject = document.getElementById("subjectSelect").value;
+      const input = document.getElementById("transcriptInput").value;
+
+      if (!input.trim()) {
+        alert("Please paste a transcript first.");
+        return;
+      }
+
+      const summaryBox = document.getElementById("summary");
+      summaryBox.innerText = "Using AI to generate summary...";
+      
+      // Simulate backend delay
+      setTimeout(() => {
+        let fakeSummary = "";
+
+        switch(subject) {
+          case "Biology":
+            fakeSummary = `BIOLOGY SUMMARY:\nPhotosynthesis converts light energy into chemical energy.\n\nKey Points:\n- Light-dependent reactions\n- Calvin cycle\n- ATP and NADPH production`;
+            break;
+          case "Chemistry":
+            fakeSummary = `CHEMISTRY SUMMARY:\nBalancing chemical equations:\n\nExample:\nH₂O → H⁺ + OH⁻\n\nAction Items:\n- Review periodic table trends\n- Practice balancing reactions`;
+            break;
+          case "Physics":
+            fakeSummary = `PHYSICS SUMMARY:\nNewton's Laws of Motion:\n\n1. F = ma\n2. Force is proportional to acceleration\n3. Action-reaction pairs`;
+            break;
+          case "Math":
+            fakeSummary = `MATH SUMMARY:\nSolving quadratic equations:\n\nExample: x² + 5x + 6 = 0\nFactored: (x + 2)(x + 3) = 0\nRoots: -2, -3`;
+
+            break;
+          case "History":
+            fakeSummary = `HISTORY SUMMARY:\nWWII Key Events:\n\n1. D-Day Invasion (June 6, 1944)\n2. Fall of Berlin (May 1945)\n3. Potsdam Conference`;
+            break;
+          default:
+            fakeSummary = `SUMMARY:\nYour lecture covers important concepts related to:\n\n- Main topics\n- Key definitions\n- Important dates\n- Things to review`;
+        }
+
+        summaryBox.innerText = fakeSummary;
+        summaryCount++;
+      }, 1500);
+    });
+
+    // Export to Markdown
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      const summaryText = document.getElementById("summary").innerText;
+      if (!summaryText || summaryText === "Using AI to generate summary..." || summaryText.startsWith("Demo limit reached")) {
+        alert("No summary available to export.");
+        return;
+      }
+
+      const blob = new Blob([summaryText], { type: "text/markdown" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${document.getElementById("subjectSelect").value}_summary.md`;
+      a.click();
+    });
+  </script>
+</body>
+</html>
