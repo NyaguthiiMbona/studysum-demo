@@ -48,8 +48,8 @@
     button {
       background-color: #3498db;
       color: white;
-      border: none;
       cursor: pointer;
+      border: none;
     }
 
     button:hover {
@@ -61,8 +61,8 @@
       background: #ecf0f1;
       padding: 10px;
       border-radius: 5px;
-      white-space: pre-wrap;
       min-height: 120px;
+      white-space: pre-wrap;
       font-size: 14px;
     }
 
@@ -79,7 +79,7 @@
     <h1>StudySum</h1>
     <p>Select your subject and paste your Zoom/Meet transcript below.</p>
 
-    <!-- Subject Selection -->
+    <!-- Subject Selector -->
     <label for="subjectSelect">Choose Your Subject:</label>
     <select id="subjectSelect">
       <option value="General">General</option>
@@ -91,12 +91,14 @@
     </select>
 
     <!-- Transcript Input -->
-    <label for="transcriptInput">Paste Your Lecture Transcript:</label>
-    <textarea id="transcriptInput" placeholder="Paste your Zoom or Meet transcript here..."></textarea>
+    <label for="transcriptInput">Paste Your Transcript:</label>
+    <textarea id="transcriptInput" placeholder="Paste your lecture transcript here..."></textarea>
 
-    <!-- Generate Button -->
+    <!-- Buttons -->
     <button id="summarizeBtn">Generate Summary</button>
-    <button id="exportBtn">Export Summary (.md)</button>
+    <button id="exportMarkdown">Export as Markdown (.md)</button>
+    <button id="exportWord">Export as Word (.docx)</button>
+    <button id="exportPDF">Export as PDF</button>
 
     <!-- Summary Output -->
     <div id="summary"></div>
@@ -104,34 +106,37 @@
     <!-- Footer -->
     <div class="footer">
       Demo version limited to 3 summaries per session<br/>
-      Full version available in Chrome Web Store
+      Full version coming soon to Chrome Web Store
     </div>
   </div>
 
+  <!-- JS Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js "></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth.browser/1.4.8/mammoth.browser.min.js "></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js "></script>
+
   <script>
     const MAX_SUMMARIES = 3;
-
     let summaryCount = 0;
 
-    // Simulate AI-generated summary
+    // Simulate AI Summary Generation
     document.getElementById("summarizeBtn").addEventListener("click", () => {
       if (summaryCount >= MAX_SUMMARIES) {
         alert(`Demo limit reached. You can generate up to ${MAX_SUMMARIES} summaries per session.`);
         return;
       }
 
-      const subject = document.getElementById("subjectSelect").value;
       const input = document.getElementById("transcriptInput").value;
-
       if (!input.trim()) {
         alert("Please paste a transcript first.");
         return;
       }
 
+      const subject = document.getElementById("subjectSelect").value;
       const summaryBox = document.getElementById("summary");
       summaryBox.innerText = "Using AI to generate summary...";
-      
-      // Simulate backend delay
+
+      // Simulated AI response
       setTimeout(() => {
         let fakeSummary = "";
 
@@ -147,13 +152,12 @@
             break;
           case "Math":
             fakeSummary = `MATH SUMMARY:\nSolving quadratic equations:\n\nExample: x² + 5x + 6 = 0\nFactored: (x + 2)(x + 3) = 0\nRoots: -2, -3`;
-
             break;
           case "History":
             fakeSummary = `HISTORY SUMMARY:\nWWII Key Events:\n\n1. D-Day Invasion (June 6, 1944)\n2. Fall of Berlin (May 1945)\n3. Potsdam Conference`;
             break;
           default:
-            fakeSummary = `SUMMARY:\nYour lecture covers important concepts related to:\n\n- Main topics\n- Key definitions\n- Important dates\n- Things to review`;
+            fakeSummary = `SUMMARY:\nYour lecture covers key concepts like:\n\n- Main topics\n- Definitions\n- Important dates\n- Things to review`;
         }
 
         summaryBox.innerText = fakeSummary;
@@ -161,8 +165,8 @@
       }, 1500);
     });
 
-    // Export to Markdown
-    document.getElementById("exportBtn").addEventListener("click", () => {
+    // Export as Markdown
+    document.getElementById("exportMarkdown").addEventListener("click", () => {
       const summaryText = document.getElementById("summary").innerText;
       if (!summaryText || summaryText === "Using AI to generate summary..." || summaryText.startsWith("Demo limit reached")) {
         alert("No summary available to export.");
@@ -174,6 +178,58 @@
       a.href = URL.createObjectURL(blob);
       a.download = `${document.getElementById("subjectSelect").value}_summary.md`;
       a.click();
+    });
+
+    // Export as Word (.docx)
+    document.getElementById("exportWord").addEventListener("click", () => {
+      const summaryText = document.getElementById("summary").innerText;
+      if (!summaryText || summaryText === "Using AI to generate summary..." || summaryText.startsWith("Demo limit reached")) {
+        alert("No summary available to export.");
+        return;
+      }
+
+      const docContent = `
+        <h1>${document.getElementById("subjectSelect").value} Summary</h1>
+        <pre>${summaryText}</pre>
+      `;
+
+      mammoth.convertToDocx({
+        arrayBuffer: new TextEncoder().encode(docContent).buffer
+      }).then(function(result) {
+        const file = new Blob([result.value], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(file);
+        a.download = `${document.getElementById("subjectSelect").value}_summary.docx`;
+        a.click();
+      }).catch(function(error) {
+        alert("Error generating Word file.");
+        console.error(error);
+      });
+    });
+
+    // Export as PDF
+    document.getElementById("exportPDF").addEventListener("click", () => {
+      const summaryText = document.getElementById("summary").innerText;
+      if (!summaryText || summaryText === "Using AI to generate summary..." || summaryText.startsWith("Demo limit reached")) {
+        alert("No summary to export.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+      const lines = summaryText.split("\n");
+
+      let y = 20;
+      lines.forEach(line => {
+        if (y > 270) {
+          pdf.addPage();
+          y = 20;
+        }
+        pdf.text(line, 10, y);
+        y += 10;
+      });
+
+      pdf.save(`${document.getElementById("subjectSelect").value}_summary.pdf`);
     });
   </script>
 </body>
