@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>StudySum – AI Lecture Summarizer</title>
   <style>
     body {
@@ -29,13 +30,19 @@
       color: #2c3e50;
     }
 
-    label {
-      display: block;
-      margin-top: 20px;
-      font-weight: bold;
+    p {
+      text-align: center;
+      font-size: 1.2em;
+      margin-bottom: 30px;
     }
 
-    select, textarea, button {
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    input[type="email"], textarea, select, button {
       width: 100%;
       padding: 10px;
       margin-top: 8px;
@@ -56,12 +63,12 @@
       background-color: #2980b9;
     }
 
-    #summary {
+    #summary, #waitlistStatus {
       margin-top: 20px;
       background: #ecf0f1;
       padding: 10px;
       border-radius: 5px;
-      min-height: 120px;
+      min-height: 100px;
       white-space: pre-wrap;
       font-size: 14px;
     }
@@ -72,15 +79,32 @@
       text-align: center;
       color: #888;
     }
+
+    .status {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>StudySum</h1>
-    <p>Select your subject and paste your Zoom/Meet transcript below.</p>
+    <p>Get AI-powered summaries of Zoom/Meet lectures instantly in-browser.</p>
 
-    <!-- Subject Selector -->
-    <label for="subjectSelect">Choose Your Subject:</label>
+    <!-- Transcript Input -->
+    <label for="transcriptInput">Paste Your Lecture Transcript:</label>
+    <textarea id="transcriptInput" placeholder="Paste your Zoom transcript here..."></textarea>
+
+    <!-- Subject Selection -->
+    <label for="subjectSelect">Choose your subject (optional):</label>
     <select id="subjectSelect">
       <option value="General">General</option>
       <option value="Biology">Biology</option>
@@ -90,23 +114,29 @@
       <option value="History">History</option>
     </select>
 
-    <!-- Transcript Input -->
-    <label for="transcriptInput">Paste Your Transcript:</label>
-    <textarea id="transcriptInput" placeholder="Paste your lecture transcript here..."></textarea>
-
-    <!-- Buttons -->
+    <!-- Generate Summary Button -->
     <button id="summarizeBtn">Generate Summary</button>
-    <button id="exportMarkdown">Export as Markdown (.md)</button>
-    <button id="exportWord">Export as Word (.docx)</button>
-    <button id="exportPDF">Export as PDF</button>
 
     <!-- Summary Output -->
     <div id="summary"></div>
 
+    <!-- Export Buttons -->
+    <button id="exportMarkdown">Export as Markdown (.md)</button>
+    <button id="exportWord">Export as Word (.docx)</button>
+    <button id="exportPDF">Export as PDF</button>
+
+    <!-- Waitlist Form -->
+    <h2>Join the Waitlist</h2>
+    <label for="waitlistEmail">Stay updated when StudySum launches:</label>
+    <input type="email" id="waitlistEmail" placeholder="your.email@example.com" required />
+
+    <button id="waitlistBtn">Get Early Access</button>
+    <div class="status" id="waitlistStatus"></div>
+
     <!-- Footer -->
     <div class="footer">
-      Demo version limited to 3 summaries per session<br/>
-      Full version coming soon to Chrome Web Store
+      Demo version limited to simulated summaries<br/>
+      Coming soon to Chrome Web Store
     </div>
   </div>
 
@@ -119,7 +149,7 @@
     const MAX_SUMMARIES = 3;
     let summaryCount = 0;
 
-    // Simulate AI Summary Generation
+    // Simulated AI Summary Generation
     document.getElementById("summarizeBtn").addEventListener("click", () => {
       if (summaryCount >= MAX_SUMMARIES) {
         alert(`Demo limit reached. You can generate up to ${MAX_SUMMARIES} summaries per session.`);
@@ -127,6 +157,7 @@
       }
 
       const input = document.getElementById("transcriptInput").value;
+
       if (!input.trim()) {
         alert("Please paste a transcript first.");
         return;
@@ -136,7 +167,6 @@
       const summaryBox = document.getElementById("summary");
       summaryBox.innerText = "Using AI to generate summary...";
 
-      // Simulated AI response
       setTimeout(() => {
         let fakeSummary = "";
 
@@ -196,7 +226,9 @@
       mammoth.convertToDocx({
         arrayBuffer: new TextEncoder().encode(docContent).buffer
       }).then(function(result) {
-        const file = new Blob([result.value], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+        const file = new Blob([result.value], {
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(file);
         a.download = `${document.getElementById("subjectSelect").value}_summary.docx`;
@@ -211,7 +243,7 @@
     document.getElementById("exportPDF").addEventListener("click", () => {
       const summaryText = document.getElementById("summary").innerText;
       if (!summaryText || summaryText === "Using AI to generate summary..." || summaryText.startsWith("Demo limit reached")) {
-        alert("No summary to export.");
+        alert("No summary available to export.");
         return;
       }
 
@@ -230,6 +262,38 @@
       });
 
       pdf.save(`${document.getElementById("subjectSelect").value}_summary.pdf`);
+    });
+
+    // Waitlist Submission
+    const waitlistFormURL = "https://script.google.com/macros/s/YOUR_GOOGLE_SCRIPT_ID/exec ";
+
+    document.getElementById("waitlistBtn").addEventListener("click", async () => {
+      const email = document.getElementById("waitlistEmail").value;
+      const statusDiv = document.getElementById("waitlistStatus");
+
+      if (!email.includes("@")) {
+        statusDiv.innerText = "Please enter a valid email.";
+        statusDiv.className = "status error";
+        return;
+      }
+
+      try {
+        const response = await fetch(waitlistFormURL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ fields: { Email: email } })
+        });
+
+        statusDiv.innerText = "Thanks! We'll notify you when we launch.";
+        statusDiv.className = "status success";
+        document.getElementById("waitlistEmail").value = "";
+      } catch (error) {
+        console.error("Waitlist Error:", error);
+        statusDiv.innerText = "Something went wrong. Try again later.";
+        statusDiv.className = "status error";
+      }
     });
   </script>
 </body>
